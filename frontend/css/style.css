@@ -1,0 +1,582 @@
+/* 
+ * Styles pour GeoTopBrands
+ * Par Abel T. - Mars 2024
+ * 
+ * Table des matières :
+ * 1. Variables
+ * 2. Base & Layout
+ * 3. Cards & Components
+ * 4. Animations
+ * 5. Responsive
+ */
+
+/* 1. Variables */
+:root {
+    --primary: #0d6efd;
+    --success: #198754;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --shadow: 0 .5rem 1rem rgba(0, 0, 0, .15);
+    --radius: .375rem;
+    --transition: all .3s ease;
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+}
+
+/* 2. Base & Layout */
+body {
+    background-color: var(--light);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.navbar {
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+}
+
+.container {
+    max-width: 1200px;
+    padding: 0 1rem;
+}
+
+/* 3. Cards & Components */
+.brand-card {
+    display: flex;
+    flex-direction: row;
+    border: none;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    background: white;
+    border-radius: var(--radius);
+    transition: var(--transition);
+}
+
+.brand-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.brand-image-container {
+    width: 200px;
+    min-width: 200px;
+    height: 150px;
+    position: relative;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+
+.brand-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 1rem;
+    transition: var(--transition);
+}
+
+.brand-card:hover .brand-image {
+    transform: scale(1.05);
+}
+
+.card-content {
+    flex: 1;
+    display: flex;
+    padding: 1.5rem;
+    align-items: center;
+    gap: 2rem;
+}
+
+.brand-info {
+    flex: 1;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--dark);
+}
+
+.country-badge {
+    display: inline-block;
+    padding: .25rem .75rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: .875rem;
+    text-transform: uppercase;
+    background: var(--primary);
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.country-badge.fr {
+    background: #002395;
+}
+
+.country-badge.cm {
+    background: #007a5e;
+}
+
+.bonus-text {
+    font-size: 1rem;
+    color: var(--success);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.rating {
+    font-size: 1.25rem;
+    letter-spacing: .1rem;
+}
+
+.rating .bi-star-fill {
+    color: var(--warning);
+}
+
+.rating .bi-star {
+    color: #dee2e6;
+}
+
+.brand-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 150px;
+}
+
+.brand-actions .btn {
+    width: 100%;
+    padding: .5rem 1rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+}
+
+.btn i {
+    font-size: 1.1em;
+}
+
+/* Toast Notifications */
+.toast-notification {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius);
+    background: white;
+    box-shadow: var(--shadow);
+    z-index: 1050;
+    opacity: 0;
+    transform: translateY(1rem);
+    transition: var(--transition);
+}
+
+.toast-notification.success {
+    border-left: 4px solid var(--success);
+}
+
+.toast-notification.error {
+    border-left: 4px solid var(--danger);
+}
+
+/* Modals */
+.modal-content {
+    border: none;
+    border-radius: var(--radius);
+}
+
+.modal-header {
+    background: var(--light);
+    border-bottom: 2px solid #eee;
+}
+
+.modal-title {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.modal-footer {
+    background: var(--light);
+    border-top: 2px solid #eee;
+}
+
+/* Forms */
+.form-label {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.form-control {
+    border: 2px solid #eee;
+    border-radius: var(--radius);
+    padding: .5rem 1rem;
+    transition: var(--transition);
+}
+
+.form-control:focus {
+    border-color: var(--primary);
+    box-shadow: none;
+}
+
+/* 4. Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(1rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.brand-card {
+    animation: fadeInUp .5s ease forwards;
+}
+
+/* 5. Responsive */
+@media (max-width: 768px) {
+    .brand-card {
+        flex-direction: column;
+    }
+    
+    .brand-image-container {
+        width: 100%;
+        height: 200px;
+    }
+    
+    .card-content {
+        flex-direction: column;
+        padding: 1rem;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .brand-info {
+        text-align: center;
+    }
+    
+    .brand-actions {
+        width: 100%;
+    }
+    
+    .toast-notification {
+        left: 1rem;
+        right: 1rem;
+        bottom: 1rem;
+        text-align: center;
+    }
+}
+
+/* Ajout des styles de loading */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.loading-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid var(--light);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.btn-loading .spinner-border {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.5rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* État désactivé pour les cartes pendant le chargement */
+.brand-card.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Animation de pulse pour les éléments en cours de chargement */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Pagination Styles */
+.pagination {
+    margin-top: 2rem;
+    gap: 0.25rem;
+}
+
+.page-link {
+    border: none;
+    padding: 0.5rem 0.75rem;
+    color: var(--dark);
+    background: white;
+    border-radius: var(--radius);
+    transition: var(--transition);
+    min-width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-link:hover {
+    background: var(--light);
+    color: var(--primary);
+}
+
+.page-item.active .page-link {
+    background: var(--primary);
+    color: white;
+}
+
+.page-item.disabled .page-link {
+    background: transparent;
+    color: #6c757d;
+    opacity: 0.5;
+}
+
+.page-link i {
+    font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+    .pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .page-link {
+        min-width: 2rem;
+        height: 2rem;
+        padding: 0.25rem;
+        font-size: 0.875rem;
+    }
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loading-overlay.show {
+    display: flex;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Casino Table Styles */
+.table th {
+    background-color: #e9ecef;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.casino-logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border-radius: 8px;
+    background-color: white;
+    padding: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.casino-name {
+    font-weight: 600;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.casino-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background-color: #e9ecef;
+    color: var(--secondary-color);
+}
+
+.badge-exclusive {
+    background-color: #ff4757;
+    color: white;
+}
+
+.badge-popular {
+    background-color: #ffa502;
+    color: white;
+}
+
+/* Rating Stars */
+.rating {
+    color: var(--warning-color);
+    font-size: 1.2rem;
+}
+
+/* Country Badge */
+.country-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background-color: rgba(255,255,255,0.2);
+    color: white;
+    font-weight: 500;
+}
+
+.country-badge i {
+    margin-right: 6px;
+}
+
+/* Bonus Button */
+.btn-bonus {
+    background-color: var(--success-color);
+    color: white;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-bonus:hover {
+    background-color: #146c43;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Toast Notifications */
+.toast-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    z-index: 9999;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.toast-notification.success {
+    background-color: var(--success-color);
+}
+
+.toast-notification.error {
+    background-color: var(--danger-color);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .casino-logo {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .table td, .table th {
+        padding: 8px;
+    }
+    
+    .btn-bonus {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .rating {
+        font-size: 1rem;
+    }
+}
+
+/* Modal Animations */
+.modal.fade .modal-dialog {
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+}
+
+.modal.show .modal-dialog {
+    transform: scale(1);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--secondary-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
