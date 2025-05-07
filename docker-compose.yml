@@ -1,0 +1,84 @@
+services:
+  nginx:
+    image: nginx:stable-alpine
+    container_name: geotopbrands_nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./api:/var/www/html:rw
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+    networks:
+      - geotopbrands
+
+  frontend:
+    image: nginx:stable-alpine
+    container_name: geotopbrands_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    networks:
+      - geotopbrands
+
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: geotopbrands_php
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./api:/var/www/html:rw
+    environment:
+      - DB_HOST=mysql
+      - DB_DATABASE=geotopbrands
+      - DB_USERNAME=geotopbrands
+      - DB_PASSWORD=secret
+    depends_on:
+      - mysql
+    networks:
+      - geotopbrands
+
+  mysql:
+    image: mariadb:10.6
+    container_name: geotopbrands_mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: geotopbrands
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: geotopbrands
+      MYSQL_PASSWORD: secret
+    volumes:
+      - mysql_data:/var/lib/mysql:rw
+    networks:
+      - geotopbrands
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: geotopbrands_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=mysql
+      - PMA_USER=root
+      - PMA_PASSWORD=root
+    depends_on:
+      - mysql
+    networks:
+      - geotopbrands
+
+networks:
+  geotopbrands:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
