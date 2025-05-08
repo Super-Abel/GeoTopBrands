@@ -113,7 +113,6 @@ Create a new brand.
 {
     "brand_name": "New Casino",
     "brand_image": "https://example.com/image.jpg",
-    "country_code": "FR",
     "rating": 5
 }
 ```
