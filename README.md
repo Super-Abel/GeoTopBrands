@@ -95,7 +95,6 @@ Get a paginated list of brands.
             "id": 1,
             "brand_name": "Example Casino",
             "brand_image": "https://example.com/image.jpg",
-            "country_code": "FR",
             "rating": 5
         }
     ],
