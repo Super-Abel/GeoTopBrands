@@ -6,60 +6,70 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
 class BrandController extends Controller
 {
     /**
-     * List of supported country codes and their configurations
+     * List of supported country codes (ISO-2) and their configurations
      */
     private const SUPPORTED_COUNTRIES = [
         'FR' => [
             'name' => 'France',
             'bonus' => '200% up to €500 + 500 Free Spins'
         ],
-        'CM' => [
-            'name' => 'Cameroon',
-            'bonus' => 'Up to €1000 + 365 Free Spins'
+        'GB' => [
+            'name' => 'United Kingdom',
+            'bonus' => '100% up to £500 + 20 Free Spins'
         ],
-        'EN' => [
-            'name' => 'England',
-            'bonus' => '100% up to €500 + 20 Free Spins'
+        'DE' => [
+            'name' => 'Germany',
+            'bonus' => '150% up to €1000 + 100 Free Spins'
+        ],
+        'ES' => [
+            'name' => 'Spain',
+            'bonus' => '100% up to €300 + 50 Free Spins'
+        ],
+        'IT' => [
+            'name' => 'Italy',
+            'bonus' => '125% up to €800 + 75 Free Spins'
         ]
     ];
 
     /**
-     * Default country configuration when geolocation fails
+     * Default country configuration when geolocation fails or country not supported
      */
-    private const DEFAULT_COUNTRY = 'INT';
-
-    protected $defaultCountry = 'XX';
-    protected $cacheExpiration = 3600;
+    private const DEFAULT_COUNTRY = [
+        'name' => 'International',
+        'bonus' => '100% up to $200 + 25 Free Spins'
+    ];
 
     /**
-     * Get user's country from Cloudflare header or return default
+     * Get user's country from Cloudflare header with fallback options
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return string
+     * @return array
      */
-    private function getUserCountry(Request $request): string
+    private function getUserCountryConfig(Request $request): array
     {
-        $country = strtoupper($request->header('CF-IPCountry', ''));
-        if (empty($country)) {
-            $country = strtoupper($request->header('cf-ipcountry', ''));
-        }
-        //dd($country);
-        if (empty($country)) {
-            $country = strtoupper($request->input('country', self::DEFAULT_COUNTRY));
+        // Get country code from Cloudflare header
+        $countryCode = $request->header('CF-IPCountry');
+
+        // Check if the country code is empty or not defined
+        if (empty($countryCode) || $countryCode === 'XX' || $countryCode === 'T1') {
+
+            $countryCode = strtoupper($request->input('country', ''));
+
+            if (empty($countryCode) || !isset(self::SUPPORTED_COUNTRIES[$countryCode])) {
+                return self::DEFAULT_COUNTRY;
+            }
         }
 
-        // If the country is not supported, use the default value
-        if (!array_key_exists($country, self::SUPPORTED_COUNTRIES) && $country !== self::DEFAULT_COUNTRY) {
-            $country = self::DEFAULT_COUNTRY;
-        }
+        $countryCode = strtoupper($countryCode);
 
-        return $country;
+        return self::SUPPORTED_COUNTRIES[$countryCode] ?? self::DEFAULT_COUNTRY;
     }
 
     private function clearBrandsCache()
@@ -71,33 +81,93 @@ class BrandController extends Controller
         }
     }
 
-    protected function getCountryCode(Request $request)
-    {
-        return strtoupper($request->header('CF-IPCountry', $this->defaultCountry));
-    }
-
     protected function clearCache()
     {
         Cache::flush();
     }
 
     /**
-     * Display a paginated listing of brands.
+     * Display a paginated listing of brands with country-specific bonuses.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request)
     {
+        // Log headers for debugging
+        //Log::info('All headers:', ['headers' => $request->headers->all()]);
+        //Log::info('CF-IPCountry header:', ['value' => $request->header('CF-IPCountry')]);
+
         $page = max(1, (int) $request->input('page', 1));
         $perPage = min(50, max(1, (int) $request->input('per_page', 5)));
-        $country = $this->getUserCountry($request);
 
-        return Brand::when($country !== self::DEFAULT_COUNTRY, function($query) use ($country) {
-                    return $query->where('country_code', $country);
-                })
-                ->orderBy('rating', 'desc')
-                ->paginate($perPage);
+        // Get country code from Cloudflare header
+        $countryCode = $request->header('CF-IPCountry');
+
+        // Check if country is not determined or invalid
+        if (empty($countryCode) || $countryCode === 'XX' || $countryCode === 'T1') {
+            $defaultBrands = [
+                [
+                    'id' => 1,
+                    'brand_name' => 'Default Casino 1',
+                    'brand_image' => 'https://example.com/default1.jpg',
+                    'rating' => 5,
+                    'bonus' => self::DEFAULT_COUNTRY['bonus'],
+                    'country' => self::DEFAULT_COUNTRY['name']
+                ],
+                [
+                    'id' => 2,
+                    'brand_name' => 'Default Casino 2',
+                    'brand_image' => 'https://example.com/default2.jpg',
+                    'rating' => 4,
+                    'bonus' => self::DEFAULT_COUNTRY['bonus'],
+                    'country' => self::DEFAULT_COUNTRY['name']
+                ],
+                [
+                    'id' => 3,
+                    'brand_name' => 'Default Casino 3',
+                    'brand_image' => 'https://example.com/default3.jpg',
+                    'rating' => 4,
+                    'bonus' => self::DEFAULT_COUNTRY['bonus'],
+                    'country' => self::DEFAULT_COUNTRY['name']
+                ]
+            ];
+
+            //Paginator
+            $total = count($defaultBrands);
+            $items = array_slice($defaultBrands, ($page - 1) * $perPage, $perPage);
+
+            return response()->json([
+                'current_page' => $page,
+                'data' => $items,
+                'first_page_url' => url()->current() . '?page=1',
+                'from' => ($page - 1) * $perPage + 1,
+                'last_page' => ceil($total / $perPage),
+                'last_page_url' => url()->current() . '?page=' . ceil($total / $perPage),
+                'next_page_url' => $page < ceil($total / $perPage) ? url()->current() . '?page=' . ($page + 1) : null,
+                'path' => url()->current(),
+                'per_page' => $perPage,
+                'prev_page_url' => $page > 1 ? url()->current() . '?page=' . ($page - 1) : null,
+                'to' => min(($page - 1) * $perPage + $perPage, $total),
+                'total' => $total,
+            ]);
+        }
+
+        // Get country configuration for normal case
+        $countryConfig = $this->getUserCountryConfig($request);
+
+        // Get paginated brands
+        $brands = Brand::orderBy('rating', 'desc')
+            ->paginate($perPage);
+
+        // Add country-specific bonus to each brand
+        $brands->getCollection()->transform(function ($brand) use ($countryConfig) {
+            $brand->bonus = $countryConfig['bonus'];
+            $brand->country = $countryConfig['name'];
+            return $brand;
+        });
+
+        return response()->json($brands);
     }
 
     /**
@@ -114,16 +184,16 @@ class BrandController extends Controller
             'rating' => 'required|integer|min:1|max:5'
         ]);
 
-        $data['country_code'] = $this->getCountryCode($request);
-
         try {
             $brand = Brand::create($data);
-            $this->clearCache();
+            $countryConfig = $this->getUserCountryConfig($request);
+            $brand->bonus = $countryConfig['bonus'];
+            $brand->country = $countryConfig['name'];
 
             return response()->json($brand, 201);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Erreur lors de la création',
+                'message' => 'Error creating brand',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -132,18 +202,21 @@ class BrandController extends Controller
     /**
      * Display the specified brand.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         try {
             $brand = Brand::findOrFail($id);
+            $countryConfig = $this->getUserCountryConfig($request);
+            $brand->bonus = $countryConfig['bonus'];
+            $brand->country = $countryConfig['name'];
+
             return response()->json($brand);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Casino non trouvé',
+                'message' => 'Brand not found',
                 'error' => $e->getMessage()
             ], 404);
         }
@@ -168,12 +241,15 @@ class BrandController extends Controller
             ]);
 
             $brand->update($data);
-            $this->clearCache();
+
+            $countryConfig = $this->getUserCountryConfig($request);
+            $brand->bonus = $countryConfig['bonus'];
+            $brand->country = $countryConfig['name'];
 
             return response()->json($brand);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Erreur lors de la mise à jour',
+                'message' => 'Error updating brand',
                 'error' => $e->getMessage()
             ], $e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException ? 404 : 500);
         }
@@ -182,7 +258,6 @@ class BrandController extends Controller
     /**
      * Remove the specified brand.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\JsonResponse
      */
@@ -191,12 +266,11 @@ class BrandController extends Controller
         try {
             $brand = Brand::findOrFail($id);
             $brand->delete();
-            $this->clearCache();
 
             return response()->json(null, 204);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Erreur lors de la suppression',
+                'message' => 'Error deleting brand',
                 'error' => $e->getMessage()
             ], 500);
         }
