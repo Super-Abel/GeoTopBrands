@@ -11,26 +11,29 @@ const app = {
         totalPages: 1,
         editingId: null,
         loading: false,
-        userCountry: 'INT'
+        userCountry: 'XX'
     },
     
     init() {
-        this.detectUserCountry();
         this.setupEventListeners();
-        this.loadBrands();
+        this.detectUserCountry().then(() => {
+            this.loadBrands();
+        });
     },
 
-    detectUserCountry() {
-        fetch('https://ipapi.co/json/')
-            .then(response => response.json())
-            .then(data => {
-                this.state.userCountry = data.country_code || 'INT';
-                document.getElementById('userCountry').textContent = this.state.userCountry;
-            })
-            .catch(() => {
-                this.state.userCountry = 'INT';
-                document.getElementById('userCountry').textContent = 'INT';
-            });
+    async detectUserCountry() {
+        console.log('Detecting user country...');
+        try {
+            const response = await fetch('https://ipapi.co/json/');
+            const data = await response.json();
+            this.state.userCountry = data.country_code || 'XX';
+            console.log('Country detected:', this.state.userCountry);
+            document.getElementById('userCountry').textContent = this.state.userCountry;
+        } catch (error) {
+            this.state.userCountry = 'XX';
+            console.log('Error detecting country, using default:', this.state.userCountry);
+            document.getElementById('userCountry').textContent = 'XX';
+        }
     },
     
     //Event listener configuration
@@ -62,15 +65,17 @@ const app = {
         }
     },
 
-    //get default recovery options
+    //get default recovery
     getDefaultFetchOptions(method = 'GET', body = null) {
+        console.log('Current userCountry:', this.state.userCountry);
         const options = {
             method,
             mode: 'cors',
             credentials: 'include',
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'CF-IPCountry': this.state.userCountry || 'XX'
             }
         };
 
@@ -78,6 +83,7 @@ const app = {
             options.body = JSON.stringify(body);
         }
 
+        console.log('Request headers:', options.headers);
         return options;
     },
     
@@ -85,10 +91,14 @@ const app = {
     async loadBrands(page = 1) {
         try {
             this.toggleLoading(true);
+            console.log('Loading brands with country:', this.state.userCountry);
+            
+            const options = this.getDefaultFetchOptions('GET');
+            console.log('Request options:', options);
             
             const response = await fetch(
-                `${this.config.api}/brands?page=${page}&per_page=${this.config.perPage}&country=${this.state.userCountry}`,
-                this.getDefaultFetchOptions('GET')
+                `${this.config.api}/brands?page=${page}&per_page=${this.config.perPage}`,
+                options
             );
             
             if (!response.ok) throw new Error('Error loading casinos');
@@ -125,6 +135,7 @@ const app = {
                 brand_name: document.getElementById('brand_name').value.trim(),
                 brand_image: document.getElementById('brand_image').value.trim() || null,
                 rating: parseInt(document.getElementById('rating').value),
+                
                 country_code: this.state.userCountry
             };
             
